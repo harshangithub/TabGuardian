@@ -1,0 +1,151 @@
+:root {
+  color-scheme: light;
+  --bg: #f3f4f6;
+  --text: #111827;
+  --muted: #4b5563;
+  --card: #ffffff;
+  --border: #d1d5db;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success: #166534;
+  --error: #b91c1c;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111827;
+  --text: #f9fafb;
+  --muted: #d1d5db;
+  --card: #1f2937;
+  --border: #374151;
+  --primary: #60a5fa;
+  --primary-hover: #3b82f6;
+  --success: #86efac;
+  --error: #fca5a5;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.container {
+  max-width: 860px;
+  margin: 24px auto;
+  padding: 0 16px 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+h1,
+h2 {
+  margin: 0 0 6px;
+}
+
+p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  background: transparent;
+  color: inherit;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--primary);
+  color: #ffffff;
+}
+
+button:hover {
+  background: var(--primary-hover);
+}
+
+.list {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  margin-top: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  word-break: break-word;
+}
+
+.list .value {
+  flex: 1;
+  color: var(--text);
+}
+
+.list .remove {
+  background: #dc2626;
+}
+
+.controls {
+  display: grid;
+  gap: 10px;
+}
+
+.actions {
+  flex-wrap: wrap;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.message {
+  min-height: 20px;
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+.message.success {
+  color: var(--success);
+}
+
+.message.error {
+  color: var(--error);
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tab Guardian</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header>
+        <h1>Tab Guardian</h1>
+        <p id="state" class="state inactive">Inactive</p>
+      </header>
+
+      <section class="stats">
+        <div class="stat-card">
+          <span class="label">Current Trigger Tabs</span>
+          <span id="triggerTabs" class="value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="label">Blocked Tabs Today</span>
+          <span id="blockedToday" class="value">0</span>
+        </div>
+      </section>
+
+      <button id="openSettings" class="settings-button" type="button">Open Settings</button>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

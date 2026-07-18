@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tab Guardian Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="page-header">
+        <div>
+          <h1>Tab Guardian Settings</h1>
+          <p>Configure trigger websites and whitelist rules.</p>
+        </div>
+        <label class="toggle">
+          <input id="darkMode" type="checkbox" />
+          <span>Dark Mode</span>
+        </label>
+      </header>
+
+      <section class="card">
+        <h2>Trigger Websites</h2>
+        <div class="row">
+          <input id="triggerInput" type="text" placeholder="https://example.com" />
+          <button id="addTrigger" type="button">Add</button>
+        </div>
+        <ul id="triggerList" class="list"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Whitelist Rules</h2>
+        <div class="row">
+          <input id="ruleInput" type="text" placeholder="https://*.google.com/* or regex:^https://..." />
+          <button id="addRule" type="button">Add</button>
+        </div>
+        <ul id="ruleList" class="list"></ul>
+      </section>
+
+      <section class="card controls">
+        <label class="toggle">
+          <input id="notifyOnBlock" type="checkbox" />
+          <span>Notify when a tab is blocked</span>
+        </label>
+        <div class="row actions">
+          <button id="importBtn" type="button">Import JSON</button>
+          <button id="exportBtn" type="button">Export JSON</button>
+        </div>
+        <input id="importFile" type="file" accept="application/json" hidden />
+      </section>
+
+      <p id="message" class="message" aria-live="polite"></p>
+    </main>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
