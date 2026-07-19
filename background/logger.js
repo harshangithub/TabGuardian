@@ -14,7 +14,8 @@ export async function logBlockedUrl(url, reason) {
     chrome.storage.local.get(BLOCKED_DAY_COUNT_KEY)
   ]);
 
-  const nextLog = [{ url, reason, timestamp: now }, ...log].slice(0, MAX_BLOCKED_LOG_ITEMS);
+  const dedupedLog = log.filter((entry) => entry?.url !== url || entry?.reason !== reason);
+  const nextLog = [{ url, reason, timestamp: now }, ...dedupedLog].slice(0, MAX_BLOCKED_LOG_ITEMS);
   const key = todayKey();
   const nextDayCounts = { ...dayCounts, [key]: (dayCounts[key] || 0) + 1 };
 

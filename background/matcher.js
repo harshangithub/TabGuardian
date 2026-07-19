@@ -2,7 +2,7 @@ const regexCache = new Map();
 const wildcardCache = new Map();
 
 function escapeRegex(text) {
-  return text.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&");
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /** Returns true when URL exactly equals the configured rule. */
@@ -15,11 +15,16 @@ export function matchWildcard(url, rule) {
   const wildcardRule = String(rule);
 
   if (!wildcardCache.has(wildcardRule)) {
-    const pattern = `^${escapeRegex(wildcardRule).replace(/\\\*/g, ".*")}$`;
-    wildcardCache.set(wildcardRule, new RegExp(pattern));
+    try {
+      const pattern = `^${escapeRegex(wildcardRule).replace(/\\\*/g, ".*")}$`;
+      wildcardCache.set(wildcardRule, new RegExp(pattern));
+    } catch {
+      wildcardCache.set(wildcardRule, null);
+    }
   }
 
-  return wildcardCache.get(wildcardRule).test(String(url));
+  const compiled = wildcardCache.get(wildcardRule);
+  return compiled ? compiled.test(String(url)) : false;
 }
 
 /** Returns true when URL matches a regex rule prefixed with "regex:". */
