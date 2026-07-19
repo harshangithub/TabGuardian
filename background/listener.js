@@ -9,6 +9,7 @@ const blockedTabs = new Set();
 let monitorAttached = false;
 let initialized = false;
 let blockedBadgeTimer;
+let triggerSyncPromise = null;
 
 function safeUrl(tab, changeInfo) {
   return changeInfo?.url || tab?.url || tab?.pendingUrl || "";
@@ -21,6 +22,23 @@ async function isTriggerMatch(url) {
 
   const { triggerWebsites } = await getSettings();
   return isAllowed(url, triggerWebsites);
+}
+
+function shouldIgnoreUrl(url) {
+  if (!url) {
+    return true;
+  }
+
+  if (url === "about:blank") {
+    return true;
+  }
+
+  try {
+    const parsed = new URL(url);
+    return ["chrome:", "edge:", "devtools:", "chrome-extension:", "edge-extension:"].includes(parsed.protocol);
+  } catch {
+    return true;
+  }
 }
 
 async function notifyStatusChanged() {
@@ -70,17 +88,24 @@ async function closeBlockedTab(tabId, url, reason, notifyOnBlock) {
 }
 
 async function evaluateTab(tabId, tab, changeInfo, source) {
-  if (!isListening || activeTriggerTabs.has(tabId)) {
+  if (!isListening || !Number.isInteger(tabId) || activeTriggerTabs.has(tabId)) {
     return;
   }
 
   const url = safeUrl(tab, changeInfo);
 
-  if (!url) {
+  if (shouldIgnoreUrl(url)) {
     return;
   }
 
   const settings = await getSettings();
+
+  if (isAllowed(url, settings.triggerWebsites)) {
+    activeTriggerTabs.add(tabId);
+    await notifyStatusChanged();
+    return;
+  }
+
   const allowed = isAllowed(url, settings.whitelistRules);
 
   if (!allowed) {
@@ -123,6 +148,10 @@ async function stopMonitoring() {
 }
 
 async function refreshTriggerMembership(tabId, tab, changeInfo) {
+  if (!Number.isInteger(tabId)) {
+    return;
+  }
+
   const url = safeUrl(tab, changeInfo);
 
   if (!url) {
@@ -174,6 +203,10 @@ async function onUpdatedAnyTab(tabId, changeInfo, tab) {
   await refreshTriggerMembership(tabId, tab, changeInfo);
 }
 
+async function onCreatedAnyTab(tab) {
+  await refreshTriggerMembership(tab.id, tab, null);
+}
+
 async function onRemovedAnyTab(tabId) {
   blockedTabs.delete(tabId);
 
@@ -186,6 +219,61 @@ async function onRemovedAnyTab(tabId) {
   }
 
   await notifyStatusChanged();
+}
+
+async function syncTriggerTabsFromCurrentTabs() {
+  const tabs = await chrome.tabs.query({});
+  const nextTriggerTabs = new Set();
+
+  await Promise.all(tabs.map(async (tab) => {
+    if (!Number.isInteger(tab.id)) {
+      return;
+    }
+
+    const url = tab.url || tab.pendingUrl;
+    if (!url || shouldIgnoreUrl(url)) {
+      return;
+    }
+
+    if (await isTriggerMatch(url)) {
+      nextTriggerTabs.add(tab.id);
+    }
+  }));
+
+  activeTriggerTabs.clear();
+  nextTriggerTabs.forEach((tabId) => activeTriggerTabs.add(tabId));
+
+  if (activeTriggerTabs.size > 0 && !isListening) {
+    await startMonitoring();
+    return;
+  }
+
+  if (activeTriggerTabs.size === 0 && isListening) {
+    await stopMonitoring();
+    return;
+  }
+
+  await notifyStatusChanged();
+}
+
+function queueTriggerSync() {
+  if (!triggerSyncPromise) {
+    triggerSyncPromise = syncTriggerTabsFromCurrentTabs().finally(() => {
+      triggerSyncPromise = null;
+    });
+  }
+
+  return triggerSyncPromise;
+}
+
+function onStorageChanged(changes, area) {
+  if (area !== "sync" || !changes?.tabGuardianSettings) {
+    return;
+  }
+
+  queueTriggerSync().catch(() => {
+    // Ignore transient synchronization failures.
+  });
 }
 
 function onRuntimeMessage(message, _sender, sendResponse) {
@@ -220,23 +308,10 @@ export async function initializeListener() {
   initialized = true;
 
   chrome.tabs.onUpdated.addListener(onUpdatedAnyTab);
+  chrome.tabs.onCreated.addListener(onCreatedAnyTab);
   chrome.tabs.onRemoved.addListener(onRemovedAnyTab);
   chrome.runtime.onMessage.addListener(onRuntimeMessage);
+  chrome.storage.onChanged.addListener(onStorageChanged);
 
-  const tabs = await chrome.tabs.query({});
-  await Promise.all(tabs.map(async (tab) => {
-    const url = tab.url || tab.pendingUrl;
-
-    if (url && (await isTriggerMatch(url))) {
-      activeTriggerTabs.add(tab.id);
-    }
-  }));
-
-  if (activeTriggerTabs.size > 0) {
-    await startMonitoring();
-  } else {
-    await setBadgeState("inactive");
-  }
-
-  await notifyStatusChanged();
+  await queueTriggerSync();
 }

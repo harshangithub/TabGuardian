@@ -194,7 +194,7 @@ function exportJson() {
   anchor.download = "tab-guardian-settings.json";
   anchor.click();
 
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
   showMessage("Settings exported.");
 }
 

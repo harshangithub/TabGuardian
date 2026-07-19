@@ -16,8 +16,12 @@ function renderStatus(status) {
 }
 
 async function refreshStatus() {
-  const status = await chrome.runtime.sendMessage({ type: "GET_STATUS" });
-  renderStatus(status);
+  try {
+    const status = await chrome.runtime.sendMessage({ type: "GET_STATUS" });
+    renderStatus(status);
+  } catch {
+    renderStatus({ isListening: false, activeTriggerTabs: [], blockedToday: 0 });
+  }
 }
 
 openSettingsBtn.addEventListener("click", () => {
